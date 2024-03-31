@@ -1,2 +1,3 @@
 mod dynamic_array;
-mod singly_linked_list;
+mod boxed_singly_linked_list;
+mod pointed_singly_linked_list;

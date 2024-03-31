@@ -1,21 +1,21 @@
 #[derive(Clone, Debug, PartialEq)]
-struct Node<T> {
+struct BoxedNode<T> {
     data: T,
-    next: Option<Box<Node<T>>>,
+    next: Option<Box<BoxedNode<T>>>,
 }
 
-impl<T> Node<T> {
+impl<T> BoxedNode<T> {
     fn new(data: T) -> Self {
         Self { data, next: None }
     }
 }
 
-struct SinglyLinkedList<T> {
+struct BoxedSinglyLinkedList<T> {
     size: usize,
-    head: Option<Box<Node<T>>>,
+    head: Option<Box<BoxedNode<T>>>,
 }
 
-impl<T: PartialEq> SinglyLinkedList<T> {
+impl<T: PartialEq> BoxedSinglyLinkedList<T> {
     fn new() -> Self {
         Self {
             size: 0,
@@ -33,7 +33,7 @@ impl<T: PartialEq> SinglyLinkedList<T> {
     }
 
     fn add(&mut self, data: T) {
-        let new_node = Box::new(Node::new(data));
+        let new_node = Box::new(BoxedNode::new(data));
 
         if let Some(ref mut head) = self.head {
             let mut current = head;
@@ -99,18 +99,18 @@ mod tests {
         use std::any::{Any, TypeId};
 
         assert_eq!(
-            SinglyLinkedList::<u8>::new().type_id(),
-            TypeId::of::<SinglyLinkedList<u8>>()
+            BoxedSinglyLinkedList::<u8>::new().type_id(),
+            TypeId::of::<BoxedSinglyLinkedList<u8>>()
         );
         assert_ne!(
-            SinglyLinkedList::<u8>::new().type_id(),
-            TypeId::of::<SinglyLinkedList<u16>>()
+            BoxedSinglyLinkedList::<u8>::new().type_id(),
+            TypeId::of::<BoxedSinglyLinkedList<u16>>()
         );
     }
 
     #[test]
     fn default_instantiation() {
-        let singly_u8_linked_list = SinglyLinkedList::<u8>::new();
+        let singly_u8_linked_list = BoxedSinglyLinkedList::<u8>::new();
 
         assert_eq!(singly_u8_linked_list.size, 0);
         assert_eq!(singly_u8_linked_list.size(), 0);
@@ -119,8 +119,8 @@ mod tests {
     }
 
     #[test]
-    fn first_add_instruction() {
-        let mut singly_u8_linked_list = SinglyLinkedList::<u8>::new();
+    fn first_peek_instruction() {
+        let mut singly_u8_linked_list = BoxedSinglyLinkedList::<u8>::new();
 
         singly_u8_linked_list.add(0);
 
@@ -129,7 +129,23 @@ mod tests {
         assert!(singly_u8_linked_list.head.is_some());
         assert_eq!(
             singly_u8_linked_list.head,
-            Some(Box::new(Node::<u8>::new(0)))
+            Some(Box::new(BoxedNode::<u8>::new(0)))
+        );
+        assert_eq!(singly_u8_linked_list.peek(), Some(&0));
+    }
+
+    #[test]
+    fn first_add_instruction() {
+        let mut singly_u8_linked_list = BoxedSinglyLinkedList::<u8>::new();
+
+        singly_u8_linked_list.add(0);
+
+        assert_eq!(singly_u8_linked_list.size, 1);
+        assert_eq!(singly_u8_linked_list.size(), 1);
+        assert!(singly_u8_linked_list.head.is_some());
+        assert_eq!(
+            singly_u8_linked_list.head,
+            Some(Box::new(BoxedNode::<u8>::new(0)))
         );
         assert_eq!(singly_u8_linked_list.peek(), Some(&0));
         assert_eq!(singly_u8_linked_list.head.as_ref().unwrap().data, 0);
@@ -139,9 +155,9 @@ mod tests {
 
     #[test]
     fn second_add_instruction() {
-        let mut singly_u8_linked_list = SinglyLinkedList::<u8>::new();
-        let mut first_node = Node::<u8>::new(128);
-        let second_node = Node::<u8>::new(255);
+        let mut singly_u8_linked_list = BoxedSinglyLinkedList::<u8>::new();
+        let mut first_node = BoxedNode::<u8>::new(128);
+        let second_node = BoxedNode::<u8>::new(255);
         first_node.next = Some(Box::new(second_node));
 
         singly_u8_linked_list.add(128);
@@ -156,17 +172,17 @@ mod tests {
         assert!(singly_u8_linked_list.head.as_ref().unwrap().next.is_some());
         assert_eq!(
             singly_u8_linked_list.head.as_ref().unwrap().next,
-            Some(Box::new(Node::<u8>::new(255)))
+            Some(Box::new(BoxedNode::<u8>::new(255)))
         );
         assert!(singly_u8_linked_list.head.unwrap().next.unwrap().next.is_none());
     }
 
     #[test]
     fn third_add_instruction() {
-        let mut singly_u8_linked_list = SinglyLinkedList::<u8>::new();
-        let mut first_node = Node::<u8>::new(128);
-        let mut second_node = Node::<u8>::new(255);
-        second_node.next = Some(Box::new(Node::<u8>::new(0)));
+        let mut singly_u8_linked_list = BoxedSinglyLinkedList::<u8>::new();
+        let mut first_node = BoxedNode::<u8>::new(128);
+        let mut second_node = BoxedNode::<u8>::new(255);
+        second_node.next = Some(Box::new(BoxedNode::<u8>::new(0)));
         first_node.next = Some(Box::new(second_node.clone()));
 
         singly_u8_linked_list.add(128);
@@ -190,10 +206,10 @@ mod tests {
 
     #[test]
     fn clear_instruction() {
-        let mut singly_u8_linked_list = SinglyLinkedList::<u8>::new();
-        let mut first_node = Node::<u8>::new(128);
-        let mut second_node = Node::<u8>::new(255);
-        second_node.next = Some(Box::new(Node::<u8>::new(0)));
+        let mut singly_u8_linked_list = BoxedSinglyLinkedList::<u8>::new();
+        let mut first_node = BoxedNode::<u8>::new(128);
+        let mut second_node = BoxedNode::<u8>::new(255);
+        second_node.next = Some(Box::new(BoxedNode::<u8>::new(0)));
         first_node.next = Some(Box::new(second_node.clone()));
 
         singly_u8_linked_list.add(128);
@@ -208,9 +224,9 @@ mod tests {
 
     #[test]
     fn remove_instruction() {
-        let mut singly_u8_linked_list = SinglyLinkedList::<u8>::new();
-        let mut first_node = Node::<u8>::new(255);
-        let second_node = Node::<u8>::new(0);
+        let mut singly_u8_linked_list = BoxedSinglyLinkedList::<u8>::new();
+        let mut first_node = BoxedNode::<u8>::new(255);
+        let second_node = BoxedNode::<u8>::new(0);
         first_node.next = Some(Box::new(second_node.clone()));
 
         singly_u8_linked_list.add(128);
@@ -229,4 +245,31 @@ mod tests {
         assert!(singly_u8_linked_list.head.as_ref().unwrap().next.as_ref().unwrap().next.is_none());
         assert_eq!(singly_u8_linked_list.head.as_ref().unwrap().next.as_ref().unwrap().data, 0);
     }
+
+    #[test]
+    fn contains_instruction() {
+        let mut singly_u8_linked_list = BoxedSinglyLinkedList::<u8>::new();
+        singly_u8_linked_list.add(128);
+        singly_u8_linked_list.add(255);
+        singly_u8_linked_list.add(0);
+
+        assert!(singly_u8_linked_list.contains(128));
+        assert!(singly_u8_linked_list.contains(255));
+        assert!(singly_u8_linked_list.contains(0));
+        assert!(!singly_u8_linked_list.contains(1));
+    }
+
+    #[test]
+    fn index_of_instruction() {
+        let mut singly_u8_linked_list = BoxedSinglyLinkedList::<u8>::new();
+        singly_u8_linked_list.add(128);
+        singly_u8_linked_list.add(255);
+        singly_u8_linked_list.add(0);
+
+        assert_eq!(singly_u8_linked_list.index_of(128), Some(0));
+        assert_eq!(singly_u8_linked_list.index_of(255), Some(1));
+        assert_eq!(singly_u8_linked_list.index_of(0), Some(2));
+        assert_eq!(singly_u8_linked_list.index_of(1), None);
+    }
+
 }

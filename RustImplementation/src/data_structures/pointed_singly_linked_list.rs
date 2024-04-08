@@ -51,7 +51,7 @@ impl<T: PartialEq> PointedSinglyLinkedList<T> {
         if self.head.is_null() {
             self.head = new_node;
             unsafe {
-                core::ptr::write(self.head, PointedNode::new(data));
+                self.head.write(PointedNode::new(data));
             }
             return;
         }

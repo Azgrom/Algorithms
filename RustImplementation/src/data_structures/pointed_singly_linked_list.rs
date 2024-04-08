@@ -68,13 +68,7 @@ impl<T: PartialEq> PointedSinglyLinkedList<T> {
         unsafe {
             (*(*(&current))).next = new_node;
             (*(*(&current))).next.write(PointedNode::new(data));
-            // core::ptr::write(current.read().next, PointedNode::new(data))
         }
-
-        // while let Some(ref mut next) = current.next {
-        //     current = next;
-        // }
-        // current.next = new_node;
     }
 
     fn peek(&self) -> Option<&T> {
@@ -83,8 +77,6 @@ impl<T: PartialEq> PointedSinglyLinkedList<T> {
         } else {
             Some(&(unsafe { self.head.as_mut() }.unwrap().data))
         };
-
-        // self.head.as_ref().map(|node| &node.data)
     }
 
     fn remove(&mut self) -> Option<T> {
@@ -94,24 +86,19 @@ impl<T: PartialEq> PointedSinglyLinkedList<T> {
             return None;
         }
 
-        let data: Option<T>;
         unsafe {
-            // TODO: move `data` to line 96
+            self.size -= 1;
             let current_node = current_head.read();
-            data = Some(current_node.data);
-            // TODO: later check if next must be checked if null before reading
-            let next_node = current_node.next.read();
-            self.head.write(next_node);
+
+            if !current_node.next.is_null() {
+                let next_node = current_node.next.read();
+                self.head.write(next_node);
+            } else {
+                self.head = core::ptr::null_mut();
+            }
+
+            Some(current_node.data)
         }
-
-        self.size -= 1;
-        data
-
-        // self.head.take().map(|node| {
-        //     self.head = node.next;
-        //     self.size -= 1;
-        //     node.data
-        // })
     }
 
     fn contains(&self, data: T) -> bool {
@@ -355,8 +342,9 @@ mod tests {
         singly_u8_linked_list.add(128);
         singly_u8_linked_list.add(255);
         singly_u8_linked_list.add(0);
-        singly_u8_linked_list.remove();
+        let removed_item = singly_u8_linked_list.remove();
 
+        assert_eq!(removed_item, Some(128));
         assert_eq!(singly_u8_linked_list.size, 2);
         assert_eq!(singly_u8_linked_list.size(), 2);
         assert!(!singly_u8_linked_list.head.is_null());
@@ -381,6 +369,8 @@ mod tests {
             unsafe { singly_u8_linked_list.head.read().next.read() }.data,
             0
         );
+        assert_eq!(singly_u8_linked_list.remove(), Some(255));
+        assert_eq!(singly_u8_linked_list.remove(), Some(0));
     }
 
     #[test]

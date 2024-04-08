@@ -29,8 +29,7 @@ impl<T: PartialEq> PointedSinglyLinkedList<T> {
     }
 
     fn clear(&mut self) {
-        self.head = core::ptr::null_mut();
-        self.size = 0;
+        *self = Self::new();
     }
 
     fn size(&self) -> usize {
@@ -315,6 +314,10 @@ mod tests {
         singly_u8_linked_list.add(128);
         singly_u8_linked_list.add(255);
         singly_u8_linked_list.add(0);
+
+        assert_eq!(singly_u8_linked_list.size, 3);
+        assert_eq!(singly_u8_linked_list.peek(), Some(&128));
+
         singly_u8_linked_list.clear();
 
         assert_eq!(singly_u8_linked_list.size, 0);

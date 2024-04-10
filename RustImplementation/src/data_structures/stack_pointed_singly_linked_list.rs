@@ -58,17 +58,12 @@ impl<T: PartialEq> StackPointedSinglyLinkedList<T> {
             return;
         }
 
-        let mut current = self.head;
-        unsafe {
-            while !current.read().next.is_null() {
-                let x = current.read().next;
-                current = x;
-            }
-        }
+        let mut new_head = PointedNode::new(data);
+        new_head.next = self.head;
+        self.head = new_node;
 
         unsafe {
-            (*(*(&current))).next = new_node;
-            (*(*(&current))).next.write(PointedNode::new(data));
+            self.head.write(new_head);
         }
     }
 
@@ -207,13 +202,13 @@ mod tests {
         let size_of_t_node = core::mem::size_of::<PointedNode<u8>>();
         let align_of_t_node = core::mem::align_of::<PointedNode<u8>>();
         let layout = core::alloc::Layout::from_size_align(size_of_t_node, align_of_t_node).unwrap();
-        let mut first_node = PointedNode::<u8>::new(128);
+        let mut first_node = PointedNode::<u8>::new(255);
         first_node.next = Global::default()
             .allocate(layout)
             .unwrap()
             .cast::<PointedNode<u8>>()
             .as_ptr();
-        let second_node = PointedNode::<u8>::new(255);
+        let second_node = PointedNode::<u8>::new(128);
         unsafe {
             first_node.next.write(second_node.clone());
         }
@@ -228,8 +223,8 @@ mod tests {
             unsafe { singly_u8_linked_list.head.read() }.data,
             first_node.data
         );
-        assert_eq!(singly_u8_linked_list.peek(), Some(&128));
-        assert_eq!(unsafe { singly_u8_linked_list.head.read() }.data, 128);
+        assert_eq!(singly_u8_linked_list.peek(), Some(&255));
+        assert_eq!(unsafe { singly_u8_linked_list.head.read() }.data, 255);
         assert!(!unsafe { singly_u8_linked_list.head.read() }.next.is_null());
         assert_eq!(
             unsafe { singly_u8_linked_list.head.read().next.read() }.data,
@@ -246,7 +241,7 @@ mod tests {
         let size_of_t_node = core::mem::size_of::<PointedNode<u8>>();
         let align_of_t_node = core::mem::align_of::<PointedNode<u8>>();
         let layout = core::alloc::Layout::from_size_align(size_of_t_node, align_of_t_node).unwrap();
-        let mut first_node = PointedNode::<u8>::new(128);
+        let mut first_node = PointedNode::<u8>::new(0);
         first_node.next = Global::default()
             .allocate(layout)
             .unwrap()
@@ -259,7 +254,7 @@ mod tests {
             .cast::<PointedNode<u8>>()
             .as_ptr();
         unsafe {
-            second_node.next.write(PointedNode::<u8>::new(0));
+            second_node.next.write(PointedNode::<u8>::new(128));
             first_node.next.write(second_node.clone());
         }
 
@@ -274,8 +269,8 @@ mod tests {
             unsafe { singly_u8_linked_list.head.read() }.data,
             first_node.data
         );
-        assert_eq!(singly_u8_linked_list.peek(), Some(&128));
-        assert_eq!(unsafe { singly_u8_linked_list.head.read() }.data, 128);
+        assert_eq!(singly_u8_linked_list.peek(), Some(&0));
+        assert_eq!(unsafe { singly_u8_linked_list.head.read() }.data, 0);
         assert!(!unsafe { singly_u8_linked_list.head.read() }.next.is_null());
         assert_eq!(
             unsafe { singly_u8_linked_list.head.read().next.read() }.data,
@@ -301,6 +296,21 @@ mod tests {
 
         singly_u8_linked_list.pop();
         assert!(singly_u8_linked_list.is_empty());
+    }
+
+    #[test]
+    fn pop_empty_instruction() {
+        let mut singly_u8_linked_list = StackPointedSinglyLinkedList::<u8>::new();
+
+        assert!(singly_u8_linked_list.is_empty());
+
+        singly_u8_linked_list.push(128);
+        assert!(!singly_u8_linked_list.is_empty());
+
+        singly_u8_linked_list.pop();
+        assert!(singly_u8_linked_list.is_empty());
+
+        assert_eq!(singly_u8_linked_list.pop(), None);
     }
 
 
@@ -332,7 +342,7 @@ mod tests {
         singly_u8_linked_list.push(0);
 
         assert_eq!(singly_u8_linked_list.size, 3);
-        assert_eq!(singly_u8_linked_list.peek(), Some(&128));
+        assert_eq!(singly_u8_linked_list.peek(), Some(&0));
 
         singly_u8_linked_list.clear();
 
@@ -353,7 +363,7 @@ mod tests {
             .unwrap()
             .cast::<PointedNode<u8>>()
             .as_ptr();
-        let second_node = PointedNode::<u8>::new(0);
+        let second_node = PointedNode::<u8>::new(128);
         unsafe {
             first_node.next.write(second_node.clone());
         }
@@ -363,7 +373,7 @@ mod tests {
         singly_u8_linked_list.push(0);
         let removed_item = singly_u8_linked_list.pop();
 
-        assert_eq!(removed_item, Some(128));
+        assert_eq!(removed_item, Some(0));
         assert_eq!(singly_u8_linked_list.size, 2);
         assert_eq!(singly_u8_linked_list.size(), 2);
         assert!(!singly_u8_linked_list.head.is_null());
@@ -386,10 +396,10 @@ mod tests {
             .is_null());
         assert_eq!(
             unsafe { singly_u8_linked_list.head.read().next.read() }.data,
-            0
+            128
         );
         assert_eq!(singly_u8_linked_list.pop(), Some(255));
-        assert_eq!(singly_u8_linked_list.pop(), Some(0));
+        assert_eq!(singly_u8_linked_list.pop(), Some(128));
     }
 
     #[test]
@@ -414,9 +424,9 @@ mod tests {
         singly_u8_linked_list.push(255);
         singly_u8_linked_list.push(0);
 
-        assert_eq!(singly_u8_linked_list.index_of(128), Some(0));
+        assert_eq!(singly_u8_linked_list.index_of(128), Some(2));
         assert_eq!(singly_u8_linked_list.index_of(255), Some(1));
-        assert_eq!(singly_u8_linked_list.index_of(0), Some(2));
+        assert_eq!(singly_u8_linked_list.index_of(0), Some(0));
         assert_eq!(singly_u8_linked_list.index_of(1), None);
     }
 }

@@ -74,7 +74,7 @@ impl<T: PartialEq> PointedSinglyLinkedList<T> {
         return if self.head.is_null() {
             None
         } else {
-            Some(&(unsafe { self.head.as_mut() }.unwrap().data))
+            Some(&(unsafe { self.head.as_ref() }.unwrap().data))
         };
     }
 
@@ -85,18 +85,11 @@ impl<T: PartialEq> PointedSinglyLinkedList<T> {
             return None;
         }
 
+        self.size -= 1;
         unsafe {
-            self.size -= 1;
-            let current_node = current_head.read();
+            self.head = (*(*(&current_head))).next;
 
-            if !current_node.next.is_null() {
-                let next_node = current_node.next.read();
-                self.head.write(next_node);
-            } else {
-                self.head = core::ptr::null_mut();
-            }
-
-            Some(current_node.data)
+            Some(current_head.read().data)
         }
     }
 

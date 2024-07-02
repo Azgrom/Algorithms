@@ -156,7 +156,7 @@ impl<T: Copy + Ord> PriorityQueue<T> {
         self.swap(index, new_heap_size);
 
         self.heap.swap_remove(new_heap_size); // TODO check if this bamboozles everything
-        self.map_remove(&removed_data.unwrap(), new_heap_size);
+        self.map_remove(&removed_data.unwrap());
 
         if index == new_heap_size {
             return removed_data;
@@ -182,7 +182,7 @@ impl<T: Copy + Ord> PriorityQueue<T> {
             .or_insert(index);
     }
 
-    fn map_remove(&mut self, value: &T, index: usize) {
+    fn map_remove(&mut self, value: &T) {
         self.map.remove(value);
     }
 
@@ -444,5 +444,47 @@ mod tests{
         pq.add(7);
         pq.clear();
         assert!(pq.is_empty());
+    }
+
+    #[test]
+    fn empty_peel_check(){
+        let pq: PriorityQueue<i32> = PriorityQueue::default();
+
+        assert_eq!(pq.peel(), None);
+    }
+
+    #[test]
+    fn single_item_peel_check(){
+        let mut pq: PriorityQueue<i32> = PriorityQueue::default();
+        let i = 1;
+        pq.add(i);
+
+        assert_eq!(pq.peel(), Some(&i));
+    }
+
+    #[test]
+    fn peel_check_after_collection_addition(){
+        let mut pq: PriorityQueue<i32> = PriorityQueue::default();
+
+        pq.add(3);
+        pq.add(2);
+        let i = 1;
+        pq.add(i);
+
+        assert_eq!(pq.peel(), Some(&i));
+    }
+
+    #[test]
+    fn peel_check_after_removal() {
+        let mut pq: PriorityQueue<i32> = PriorityQueue::default();
+
+        pq.add(3);
+        let j = 2;
+        pq.add(j);
+        let i = 1;
+        pq.add(i);
+        pq.remove(i);
+
+        assert_eq!(pq.peel(), Some(&j));
     }
 }

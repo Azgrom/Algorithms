@@ -2,7 +2,7 @@ struct UnionFind {
     size: usize,
     sz: Vec<usize>,
     id: Vec<usize>,
-    num_components: usize
+    num_components: usize,
 }
 
 impl UnionFind {
@@ -15,7 +15,7 @@ impl UnionFind {
             size,
             sz: vec![1; size],
             id: (0..size).collect(),
-            num_components: size
+            num_components: size,
         })
     }
 
@@ -82,7 +82,7 @@ mod tests {
     use super::UnionFind;
 
     #[test]
-    fn test_new() {
+    fn new() {
         let uf = UnionFind::new(10).unwrap();
         assert_eq!(uf.size(), 10);
         assert_eq!(uf.components(), 10);
@@ -90,19 +90,47 @@ mod tests {
 
     #[test]
     #[should_panic(expected = "UnionFind with size <= 0 is not allowed")]
-    fn test_new_with_invalid_size() {
+    fn new_with_invalid_size() {
         UnionFind::new(0).unwrap();
     }
 
     #[test]
-    fn test_find() {
+    fn unify_equal_element() {
+        let mut uf = UnionFind::new(10).unwrap();
+        uf.unify(1, 1);
+        assert_eq!(uf.find(1), uf.find(1));
+        assert_eq!(uf.components(), 10);
+    }
+
+    #[test]
+    fn unify_lesser_element() {
+        let mut uf = UnionFind::new(10).unwrap();
+        uf.unify(1, 2);
+        assert_eq!(uf.find(1), uf.find(2));
+        uf.unify(2, 3);
+        assert_eq!(uf.find(1), uf.find(3));
+        assert_eq!(uf.components(), 8);
+    }
+
+    #[test]
+    fn unify_larger_element() {
+        let mut uf = UnionFind::new(10).unwrap();
+        uf.unify(2, 1);
+        assert_eq!(uf.find(1), uf.find(2));
+        uf.unify(3, 2);
+        assert_eq!(uf.find(1), uf.find(3));
+        assert_eq!(uf.components(), 8);
+    }
+
+    #[test]
+    fn find() {
         let mut uf = UnionFind::new(10).unwrap();
         uf.unify(1, 2);
         assert_eq!(uf.find(1), uf.find(2));
     }
 
     #[test]
-    fn test_connected() {
+    fn connected() {
         let mut uf = UnionFind::new(10).unwrap();
         uf.unify(1, 2);
         assert!(uf.connected(1, 2));
@@ -110,7 +138,7 @@ mod tests {
     }
 
     #[test]
-    fn test_component_size() {
+    fn component_size() {
         let mut uf = UnionFind::new(10).unwrap();
         uf.unify(1, 2);
         uf.unify(2, 3);
@@ -119,28 +147,18 @@ mod tests {
     }
 
     #[test]
-    fn test_size() {
+    fn size() {
         let uf = UnionFind::new(10).unwrap();
         assert_eq!(uf.size(), 10);
     }
 
     #[test]
-    fn test_components() {
+    fn components_count() {
         let mut uf = UnionFind::new(10).unwrap();
         assert_eq!(uf.components(), 10);
         uf.unify(1, 2);
         assert_eq!(uf.components(), 9);
         uf.unify(2, 3);
-        assert_eq!(uf.components(), 8);
-    }
-
-    #[test]
-    fn test_unify() {
-        let mut uf = UnionFind::new(10).unwrap();
-        uf.unify(1, 2);
-        assert_eq!(uf.find(1), uf.find(2));
-        uf.unify(2, 3);
-        assert_eq!(uf.find(1), uf.find(3));
         assert_eq!(uf.components(), 8);
     }
 }

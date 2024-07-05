@@ -1,3 +1,4 @@
+mod binary_search_tree;
 mod boxed_singly_linked_list;
 mod dynamic_array;
 mod pointed_singly_linked_list;

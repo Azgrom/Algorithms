@@ -15,13 +15,13 @@ impl<T> PointedNode<T> {
     }
 }
 
-struct StackPointedSinglyLinkedList<T> {
+pub(crate) struct StackPointedSinglyLinkedList<T> {
     size: usize,
     head: *mut PointedNode<T>,
 }
 
 impl<T: PartialEq> StackPointedSinglyLinkedList<T> {
-    fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Self {
             size: 0,
             head: core::ptr::null_mut(),
@@ -36,9 +36,9 @@ impl<T: PartialEq> StackPointedSinglyLinkedList<T> {
         self.size
     }
 
-    fn is_empty(&self) -> bool { self.size == 0 }
+    pub(crate) fn is_empty(&self) -> bool { self.size == 0 }
 
-    fn push(&mut self, data: T) {
+    pub(crate) fn push(&mut self, data: T) {
         let size_of_t_node = core::mem::size_of::<PointedNode<T>>();
         let align_of_t_node = core::mem::align_of::<PointedNode<T>>();
         let layout = core::alloc::Layout::from_size_align(size_of_t_node, align_of_t_node).unwrap();
@@ -75,7 +75,7 @@ impl<T: PartialEq> StackPointedSinglyLinkedList<T> {
         };
     }
 
-    fn pop(&mut self) -> Option<T> {
+    pub(crate) fn pop(&mut self) -> Option<T> {
         let current_head = self.head;
 
         if current_head.is_null() {
